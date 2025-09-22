@@ -4,7 +4,7 @@
 ````markdown
 # 🚀 Boutique Co-Pilot: A Proactive AI Shopping Assistant for GKE
 
-![Boutique Co-Pilot Demo GIF](https://your-link-to-a-cool-demo.gif)
+
 
 **Live Demo:** `http://YOUR_INGRESS_IP_ADDRESS`
 **Video Demo:** `https://your-youtube-or-vimeo-link`
