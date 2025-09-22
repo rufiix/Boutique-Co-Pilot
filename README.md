@@ -107,7 +107,7 @@ This project requires a Google Cloud project with billing enabled.
 
   * **Persistent State:** Migrate the click history and session data to a managed **Memorystore for Redis** instance to make it robust and scalable.
   * **Proactive Engagement:** Implement logic for the Co-Pilot to initiate a conversation based on user behavior (e.g., "I see you've been looking at sunglasses for a while, can I help you find the perfect pair?").
-  * **Model Tuning:** Experiment with more powerful Gemini models (like `gemini-2.0-flash-lite`) and fine-tuning for a more specialized brand personality.
+  * **Model Tuning:** Experiment with more powerful Gemini models (like `gemini-2.0-flash`) and fine-tuning for a more specialized brand personality.
 
 -----
 
