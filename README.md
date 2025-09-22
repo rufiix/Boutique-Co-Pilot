@@ -66,7 +66,7 @@ graph TD
             end
         end
 
-        AgentPod -- "5. API Call via Workload Identity" --> VertexAI["✨ Vertex AI API <br> (Gemini 1.5 Flash)"];
+        AgentPod -- "5. API Call via Workload Identity" --> VertexAI["✨ Vertex AI API <br> (Gemini 2.0 Flash Lite)"];
     end
 
     VertexAI -- "6. AI Response" --> AgentPod;
