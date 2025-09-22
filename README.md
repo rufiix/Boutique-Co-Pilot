@@ -40,33 +40,7 @@ The system is deployed on a single GKE Autopilot cluster. A **GKE Ingress** acts
 
 The agent itself is a stateless Python FastAPI application that securely communicates with the **Vertex AI Gemini API** using **Workload Identity** for authentication.
 
-```mermaid
-graph TD
-    subgraph "User's Browser"
-        A[Online Boutique UI with chat.js]
-    end
 
-    A -- "Asks: 'What color is this?'" --> B{GKE Ingress};
-
-    subgraph "Google Kubernetes Engine (Autopilot Cluster)"
-        B -- "path: /" --> C[Frontend Service];
-        B -- "path: /copilot-api/*" --> D[Co-Pilot Agent Service];
-
-        C --> E[Frontend Pod (Custom Image)];
-        D --> F[Co-Pilot Agent Pod];
-
-        subgraph F
-            G[FastAPI App];
-            H[In-Memory Cache];
-        end
-
-        F -- "Workload Identity" --> I[Vertex AI API (Gemini)];
-    end
-
-    style F fill:#d4e4ff,stroke:#333,stroke-width:2px
-````
-
------
 
 ## 💻 Tech Stack
 
