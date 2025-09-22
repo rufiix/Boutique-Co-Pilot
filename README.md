@@ -74,7 +74,7 @@ graph TD
 
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style LocalCode fill:#FFF,stroke:#333,stroke-width:2px
-    style VertexAI fill:#7fb8ff,stroke:#333,stroke-width:2px
+    style VertexAI fill:#5fa3f5,stroke:#333,stroke-width:2px
 
 ```
 
