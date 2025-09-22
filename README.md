@@ -1,10 +1,5 @@
-Oczywiście. Oto propozycja profesjonalnego, szczegółowego pliku `README.md` w języku angielskim, napisanego z myślą o sędziach hackathonu. Zawiera on wszystkie kluczowe sekcje, w tym architekturę, funkcje i wyzwania techniczne.
 
------
 
-### **Instrukcja**
-
-W głównym katalogu projektu (`C:\Boutique-Co-Pilot`), stwórz lub zaktualizuj plik `README.md` i wklej do niego poniższą zawartość. Pamiętaj, aby podmienić linki do dema i wideo na swoje własne.
 
 ````markdown
 # 🚀 Boutique Co-Pilot: A Proactive AI Shopping Assistant for GKE
@@ -144,5 +139,5 @@ This project requires a Google Cloud project with billing enabled.
 
 Created by **rufiix** for the GKE Turns 10 Hackathon.
 
-```
-```
+
+
