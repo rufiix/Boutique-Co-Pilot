@@ -1,0 +1,15 @@
+# Konfiguracja edytora (specyficzna dla Twojego komputera)
+.vscode/
+
+# Pliki i katalogi Python (auto-generowane i lokalne zależności)
+__pycache__/
+*.pyc
+/co-pilot-agent/venv/
+*.env
+
+# Oryginalne, nietknięte repozytorium (jest już zbędne)
+/microservices-demo/
+
+# Pliki systemowe i logi
+.DS_Store
+*.log

@@ -1,0 +1,31 @@
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: co-pilot-agent-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: co-pilot-agent
+  template:
+    metadata:
+      labels:
+        app: co-pilot-agent
+    spec:
+      containers:
+      - name: agent-server
+        # WAŻNE: Wklej tutaj swój Project ID!
+        image: europe-west1-docker.pkg.dev/boutique-copilot-gke10/boutique-repo/co-pilot-agent:v1
+        ports:
+        - containerPort: 8080
+        env:
+          # WAŻNE: Wklej tutaj swój Project ID!
+        - name: GCP_PROJECT
+          value: "boutique-copilot-gke10"
+        - name: GCP_REGION
+          value: "europe-west1"
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"

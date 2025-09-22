@@ -1,0 +1,13 @@
+# service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: co-pilot-agent-service
+spec:
+  type: ClusterIP # Usługa dostępna tylko wewnątrz klastra
+  selector:
+    app: co-pilot-agent
+  ports:
+  - protocol: TCP
+    port: 80       # Port, na którym usługa będzie widoczna dla innych
+    targetPort: 8080 # Port, na którym nasłuchuje nasz kontener

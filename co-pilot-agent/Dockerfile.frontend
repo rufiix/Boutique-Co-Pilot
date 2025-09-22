@@ -1,0 +1,6 @@
+# Dockerfile.frontend (OSTATECZNY TEST)
+FROM gcr.io/google-samples/microservices-demo/frontend:v0.10.0
+
+# Wylistujmy rekursywnie zawartość całego kontenera, aby zobaczyć WSZYSTKO.
+# Wynik zapisujemy do pliku, a potem go wyświetlamy, aby mieć pewność, że zobaczymy go w logach.
+RUN ls -R / > /tmp/filelist.txt && cat /tmp/filelist.txt
