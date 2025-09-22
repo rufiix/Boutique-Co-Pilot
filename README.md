@@ -6,7 +6,7 @@
 
 
 
-**Live Demo:** `http://YOUR_INGRESS_IP_ADDRESS`
+**Live Demo:** `[http://YOUR_INGRESS_IP_ADDRESS](http://34.117.74.188/)`
 **Video Demo:** `https://your-youtube-or-vimeo-link`
 
 ---
