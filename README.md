@@ -1,7 +1,7 @@
 
 
 
-````markdown
+
 # 🚀 Boutique Co-Pilot: A Proactive AI Shopping Assistant for GKE
 
 
