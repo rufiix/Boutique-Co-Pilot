@@ -1,0 +1,25 @@
+# ingress.yaml (Wersja OSTATECZNA I POPRAWNA)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: boutique-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      # Reguła 1: Ruch do API kieruj do agenta
+      - path: /copilot-api
+        pathType: Prefix
+        backend:
+          service:
+            name: co-pilot-agent-service
+            port:
+              number: 80
+      # Reguła 2: Cały pozostały ruch ("/") kieruj do frontendu
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-external
+            port:
+              number: 80
