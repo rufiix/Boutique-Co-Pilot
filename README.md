@@ -40,40 +40,6 @@ The system is deployed on a single GKE Autopilot cluster. A **GKE Ingress** acts
 
 The agent itself is a stateless Python FastAPI application that securely communicates with the **Vertex AI Gemini API** using **Workload Identity** for authentication.
 
-```mermaid
-graph TD
-    subgraph "User's Browser & Machine"
-        User(👤 User) --> Browser["🌐 Browser <br> (Online Boutique UI + chat.js)"];
-        LocalCode["💻 Local Code <br> (Python, JS, Go Source)"];
-    end
-
-    subgraph "Google Cloud Project"
-        LocalCode -- "1. gcloud builds submit" --> CloudBuild["🚀 Cloud Build"];
-        CloudBuild -- "2. Pushes Container Image" --> ArtifactRegistry["📦 Artifact Registry"];
-        
-        Browser -- "3. HTTP/S Request" --> Ingress["🚦 GKE Ingress <br> (Cloud Load Balancer)"];
-
-        subgraph "GKE Autopilot Cluster"
-            ArtifactRegistry -- "4. Pulls Image to Nodes" --> GKECluster;
-            
-            subgraph GKECluster [ ]
-                Ingress -- "path: /*" --> FrontendService["📝 Service: Frontend"];
-                Ingress -- "path: /copilot-api/*" --> AgentService["🧠 Service: Co-Pilot Agent"];
-
-                FrontendService --> FrontendPod["Go Pod <br> (Custom Frontend with chat.js)"];
-                AgentService --> AgentPod["Python Pod <br> (FastAPI Agent)"];
-            end
-        end
-
-        AgentPod -- "5. API Call via Workload Identity" --> VertexAI["✨ Vertex AI API <br> (Gemini 1.5 Flash)"];
-    end
-
-    VertexAI -- "6. AI Response" --> AgentPod;
-    AgentPod -- "7. JSON Response" --> Browser;
-
-    style User fill:#f9f,stroke:#333,stroke-width:2px
-    style LocalCode fill:#FFF,stroke:#333,stroke-width:2px
-    style VertexAI fill:#cde4ff,stroke:#333,stroke-width:2px
 
 
 ## 💻 Tech Stack
