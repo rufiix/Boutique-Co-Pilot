@@ -45,7 +45,7 @@ The agent itself is a stateless Python FastAPI application that securely communi
 ## 💻 Tech Stack
 
   * **Orchestration:** Google Kubernetes Engine (GKE) Autopilot
-  * **Artificial Intelligence:** Google Cloud Vertex AI (Gemini 1.5 Flash Model)
+  * **Artificial Intelligence:** Google Cloud Vertex AI (Gemini 2.0 Flash Lite Model)
   * **Container Registry:** Google Artifact Registry
   * **CI/CD:** Google Cloud Build
   * **Backend:** Python 3.11 with FastAPI
