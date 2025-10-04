@@ -6,7 +6,7 @@
 
 
 
-**Live Demo:** `http://34.117.74.188/`
+
 **Video Demo:** `https://www.youtube.com/watch?v=IV8Cm3HhcXY`
 
 ---
