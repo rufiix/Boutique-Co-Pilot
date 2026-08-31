@@ -1,33 +1,17 @@
-# ---------------------------------------------------------------------------
-# Stage 1: Install dependencies
-# ---------------------------------------------------------------------------
-FROM python:3.12-slim AS builder
-
-WORKDIR /build
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
-
-# ---------------------------------------------------------------------------
-# Stage 2: Production runtime
-# ---------------------------------------------------------------------------
-FROM python:3.12-slim AS runtime
-
-LABEL maintainer="rufiix"
-LABEL description="Boutique Co-Pilot Agent: multimodal AI shopping assistant"
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-RUN groupadd --gid 1000 appuser && \
-    useradd --uid 1000 --gid appuser --shell /bin/false appuser
-
-COPY --from=builder /install /usr/local
+FROM python:3.11-slim as builder
 
 WORKDIR /app
-COPY app/ app/
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-USER appuser
+FROM python:3.11-slim
 
-EXPOSE 8080
+WORKDIR /app
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+RUN pip install --no-cache /wheels/*
+
+COPY . .
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
