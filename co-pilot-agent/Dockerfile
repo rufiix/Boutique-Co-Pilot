@@ -1,18 +1,33 @@
-# Krok 1: Wybierz oficjalny, lekki obraz Pythona jako bazę
-FROM python:3.11-slim
+# ---------------------------------------------------------------------------
+# Stage 1: Install dependencies
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim AS builder
 
-# Krok 2: Ustaw katalog roboczy wewnątrz kontenera
-WORKDIR /app
-
-# Krok 3: Skopiuj i zainstaluj zależności
+WORKDIR /build
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Krok 4: Skopiuj kod źródłowy naszej aplikacji
-COPY main.py .
+# ---------------------------------------------------------------------------
+# Stage 2: Production runtime
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim AS runtime
 
-# Krok 5: Ustaw domyślne zmienne środowiskowe
-ENV GCP_REGION=europe-west1
+LABEL maintainer="rufiix"
+LABEL description="Boutique Co-Pilot Agent: multimodal AI shopping assistant"
 
-# Krok 6: Zdefiniuj komendę, która uruchomi aplikację
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid appuser --shell /bin/false appuser
+
+COPY --from=builder /install /usr/local
+
+WORKDIR /app
+COPY app/ app/
+
+USER appuser
+
+EXPOSE 8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

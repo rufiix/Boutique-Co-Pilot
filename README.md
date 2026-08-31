@@ -1,153 +1,133 @@
+# Boutique Co-Pilot
 
+A proactive, multimodal AI shopping assistant for e-commerce platforms. Built as an independent microservice on Google Kubernetes Engine (GKE) Autopilot, powered by Vertex AI Gemini for real-time, context-aware product recommendations and conversational commerce.
 
+## Architecture
 
-
-# 🚀 Boutique Co-Pilot: A Proactive AI Shopping Assistant for GKE
-
-
-
-
-**Video Demo:** `https://www.youtube.com/watch?v=IV8Cm3HhcXY`
-
----
-
-## 💡 Inspiration & Goal
-
-Built for the **GKE Turns 10 Hackathon**, the "Boutique Co-Pilot" project reimagines the e-commerce experience. The goal was to seamlessly integrate a powerful, proactive, and context-aware AI assistant into the existing "Online Boutique" microservices application, showcasing the power and flexibility of Google Kubernetes Engine and Vertex AI.
-
-Instead of a reactive, stateless chatbot, we aimed to create a true co-pilot that understands the user's journey—what they see, what they click, and what they have in their cart—to provide truly intelligent and helpful assistance. The entire project was built and deployed on **GKE Autopilot** to maximize efficiency and scalability while minimizing operational overhead.
-
----
-
-## ✨ Key Features
-
-Our Co-Pilot is more than just a chat window; it's a deeply integrated assistant with "eyes" and "memory."
-
-* **👁️ Multimodal Vision:** The assistant can "see" product images on product detail pages. You can ask it about visual attributes like color and style, and it will answer based on the image content.
-* **📄 Full Page Awareness:** The Co-Pilot scrapes the content of the page the user is currently on.
-    * On a **product page**, it knows the product's name, price, and detailed description.
-    * On the **homepage**, it knows the list of featured products and their prices.
-* **🛒 Cart Awareness:** The assistant can read the contents of the shopping cart on any page. It knows the number of items and, when on the cart page, can see a detailed list of products, quantities, prices, shipping costs, and the final total.
-* **🧠 Conversational Memory:** Using `sessionStorage`, the Co-Pilot remembers the conversation history across page navigations within a single browser session, allowing for natural, multi-turn dialogue.
-* **💡 Intelligent Recommendations:** The AI prompt is engineered to combine all available contexts (page content, cart, conversation history) to provide creative and relevant product recommendations, acting as a helpful salesperson.
-* **🏗️ Scalable Microservice Architecture:** The Co-Pilot was implemented as a new, independent microservice (`co-pilot-agent`) without modifying the source code of the original 10 backend services, demonstrating a clean, non-intrusive integration pattern.
-
----
-
-## 🏛️ Architecture
-
-The system is deployed on a single GKE Autopilot cluster. A **GKE Ingress** acts as the central router, directing traffic to the appropriate service based on the URL path. User requests are funneled either to the modified **Frontend** service or our new **Co-Pilot Agent** service.
-
-The agent itself is a stateless Python FastAPI application that securely communicates with the **Vertex AI Gemini API** using **Workload Identity** for authentication.
-
-```mermaid  
-
+```mermaid
 graph TD
-    subgraph "User's Browser & Machine"
-        User(👤 User) --> Browser["🌐 Browser <br> (Online Boutique UI + chat.js)"];
-        LocalCode["💻 Local Code <br> (Python, JS, Go Source)"];
+    subgraph "Client Layer"
+        Browser["Browser<br/>(Online Boutique UI + chat.js)"]
     end
 
-    subgraph "Google Cloud Project"
-        LocalCode -- "1. gcloud builds submit" --> CloudBuild["🚀 Cloud Build"];
-        CloudBuild -- "2. Pushes Container Image" --> ArtifactRegistry["📦 Artifact Registry"];
-        
-        Browser -- "3. HTTP/S Request" --> Ingress["🚦 GKE Ingress <br> (Cloud Load Balancer)"];
+    subgraph "GKE Autopilot Cluster"
+        Ingress["GKE Ingress<br/>(Cloud Load Balancer)"]
 
-        subgraph "GKE Autopilot Cluster"
-            ArtifactRegistry -- "4. Pulls Image to Nodes" --> GKECluster;
-            
-            subgraph GKECluster [ ]
-                Ingress -- "path: /*" --> FrontendService["📝 Service: Frontend"];
-                Ingress -- "path: /copilot-api/*" --> AgentService["🧠 Service: Co-Pilot Agent"];
+        Ingress -->|"path: /*"| Frontend["Frontend Service<br/>(Go Pod)"]
+        Ingress -->|"path: /copilot-api/*"| Agent["Co-Pilot Agent Service"]
 
-                FrontendService --> FrontendPod["Go Pod <br> (Custom Frontend with chat.js)"];
-                AgentService --> AgentPod["Python Pod <br> (FastAPI Agent)"];
-            end
+        subgraph "Co-Pilot Agent (FastAPI)"
+            Router["API Routers<br/>(chat, events, health)"]
+            DI["Dependency Injection<br/>(dependencies.py)"]
+            CoPilot["CoPilotService<br/>(Prompt Assembly)"]
+            CTX["ContextManager<br/>(User State Repository)"]
+            LLM["LLMClient<br/>(Vertex AI Abstraction)"]
         end
 
-        AgentPod -- "5. API Call via Workload Identity" --> VertexAI["✨ Vertex AI API <br> (Gemini 2.0 Flash Lite)"];
+        Router --> DI
+        DI --> CoPilot
+        CoPilot --> CTX
+        CoPilot --> LLM
     end
 
-    VertexAI -- "6. AI Response" --> AgentPod;
-    AgentPod -- "7. JSON Response" --> Browser;
-
-    style User fill:#f9f,stroke:#333,stroke-width:2px
-    style LocalCode fill:#FFF,stroke:#333,stroke-width:2px
-    style VertexAI fill:#5fa3f5,stroke:#333,stroke-width:2px
-
+    Browser -->|"HTTP/S"| Ingress
+    LLM -->|"Workload Identity"| VertexAI["Vertex AI API<br/>(Gemini 2.0 Flash Lite)"]
+    VertexAI --> LLM
+    Agent --> Router
 ```
 
-## 💻 Tech Stack
+## Design Patterns
 
-  * **Orchestration:** Google Kubernetes Engine (GKE) Autopilot
-  * **Artificial Intelligence:** Google Cloud Vertex AI (Gemini 2.0 Flash Lite Model)
-  * **Container Registry:** Google Artifact Registry
-  * **CI/CD:** Google Cloud Build
-  * **Backend:** Python 3.11 with FastAPI
-  * **Frontend Integration:** Vanilla JavaScript, jQuery, HTML5, CSS3
-  * **Networking:** GKE Ingress, Google Cloud Load Balancer
-  * **Authentication:** GKE Workload Identity
+* **Dependency Injection** -- FastAPI's `Depends` mechanism wires service instances into route handlers, enabling clean test isolation via `dependency_overrides`.
+* **Abstract Base Class (Strategy)** -- `LLMClient` ABC decouples business logic from the Vertex AI SDK, enabling provider swaps and mock-based testing.
+* **Repository Pattern** -- `ContextManager` encapsulates per-user state persistence, abstracting the storage backend (in-memory, Redis, Memorystore).
+* **Application Factory** -- `create_app()` constructs the ASGI application with middleware and router registration, following 12-factor app principles.
 
------
+## Project Structure
 
-## 🔧 Running the Project (From Scratch)
+```
+co-pilot-agent/
+    app/
+        __init__.py
+        main.py              # FastAPI application factory
+        config.py            # Pydantic Settings (env-driven)
+        dependencies.py      # DI container (singleton LLM, context manager)
+        models/
+            __init__.py
+            schemas.py       # Pydantic request/response DTOs
+        routers/
+            __init__.py
+            chat.py          # POST /copilot-api/chat
+            events.py        # POST /copilot-api/event
+            health.py        # GET /
+        services/
+            __init__.py
+            copilot.py       # CoPilotService (prompt orchestration)
+            context.py       # ContextManager (user state repository)
+            llm.py           # LLMClient ABC + VertexAIClient
+    tests/
+        __init__.py
+        conftest.py          # Shared fixtures with mocked LLM
+        test_chat.py
+        test_events.py
+    Dockerfile               # Multi-stage, non-root
+    requirements.txt
+    requirements-dev.txt
+```
 
-This project requires a Google Cloud project with billing enabled.
+## Key Features
 
-1.  **Prepare Local Environment:**
+* **Multimodal Vision**: The assistant analyzes product images via Vertex AI Gemini, answering questions about visual attributes (color, style, pattern) directly from image content.
+* **Full Page Awareness**: Contextual scraping of product pages (name, price, description) and homepage (featured products list).
+* **Cart Awareness**: Real-time cart state integration including items, quantities, shipping, and totals.
+* **Conversational Memory**: Multi-turn dialogue via `sessionStorage`-backed conversation history.
+* **Non-Intrusive Integration**: Deployed as an independent microservice without modifying any of the 10 original Online Boutique backend services.
 
-      * Clone this repository.
-      * Clone the `microservices-demo` repository into a directory named `frontend-source` and `git checkout v0.10.0`.
-      * Apply all code modifications as developed (`chat.js`, `main.py`, `footer.html`, `Dockerfile`s, etc.).
+## Environment Variables
 
-2.  **Setup Cloud Infrastructure:**
+| Variable          | Required | Default                  | Description                           |
+|-------------------|----------|--------------------------|---------------------------------------|
+| `GCP_PROJECT`     | Yes      |                          | Google Cloud project ID               |
+| `GCP_REGION`      | No       | `us-central1`            | Vertex AI region                      |
+| `MODEL_NAME`      | No       | `gemini-2.0-flash-lite`  | Generative model identifier           |
+| `ALLOWED_ORIGINS` | No       | `*`                      | Comma-separated CORS origins          |
+| `LOG_LEVEL`       | No       | `INFO`                   | Application log level                 |
 
-      * Set the `$PROJECT_ID` environment variable.
-      * Enable the GKE, Artifact Registry, Vertex AI, and Cloud Build APIs.
-      * Create a GKE Autopilot cluster.
-      * Create a firewall rule to allow health checks from the Google Cloud Load Balancer.
-      * Create a repository in Artifact Registry.
+## Build and Run
 
-3.  **Build Container Images:**
+**Docker:**
 
-      * Navigate to the `co-pilot-agent` directory and run `gcloud builds submit` to build the agent image.
-      * Navigate to the `frontend-source` directory and run `gcloud builds submit` to build the custom frontend image.
+```sh
+cd co-pilot-agent
+docker build -t co-pilot-agent .
+docker run -p 8080:8080 \
+    -e GCP_PROJECT=your-project-id \
+    -e GCP_REGION=us-central1 \
+    co-pilot-agent
+```
 
-4.  **Deploy to GKE:**
+**Local Development:**
 
-      * Apply the original `kubernetes-manifests.yaml` to deploy the base Online Boutique application.
-      * Apply the `deployment.yaml` and `service.yaml` for the `co-pilot-agent`.
-      * Patch the `frontend-external` service to be of type `NodePort`.
-      * Apply the `ingress.yaml` manifest.
-      * Use `kubectl set image` to point the `frontend` and `co-pilot-agent` deployments to the newly built container images in Artifact Registry.
+```sh
+cd co-pilot-agent
+pip install -r requirements.txt -r requirements-dev.txt
+uvicorn app.main:app --reload --port 8080
+```
 
-5.  **Configure Permissions:**
+**Testing:**
 
-      * Create a Google Service Account (GSA) and a Kubernetes Service Account (KSA).
-      * Grant the GSA the `Vertex AI User` IAM role.
-      * Configure Workload Identity by creating an IAM policy binding between the GSA and KSA and annotating the KSA.
-      * Patch the `co-pilot-agent` deployment to use the configured KSA.
+```sh
+cd co-pilot-agent
+pytest tests/ -v
+ruff check app/ tests/
+```
 
------
+## Technology Stack
 
-## 🚧 Challenges & Lessons Learned
-
-  * **JavaScript Conflicts:** The biggest challenge was integrating modern vanilla JavaScript into the legacy frontend, which uses older versions of jQuery and Bootstrap. This caused numerous subtle bugs (race conditions, event propagation issues) that required deep debugging and a final, robust solution using jQuery for event delegation.
-  * **Cloud-Native State Management:** Our initial implementation used an in-memory dictionary in the agent to store user history. We quickly discovered this is not a viable solution in a scalable, ephemeral environment like Kubernetes, where pods can be restarted at any time. This highlighted the importance of using external, persistent state stores like Redis (Memorystore) for session data in a production application.
-  * **Permissions are Key:** Correctly configuring permissions (Workload Identity and Firewall rules) was critical and a major source of errors. A single misconfigured IAM binding or a missing firewall rule can cause the entire application to fail in non-obvious ways (e.g., `502` or `422` errors).
-
------
-
-## ⏭️ Future Improvements
-
-  * **Persistent State:** Migrate the click history and session data to a managed **Memorystore for Redis** instance to make it robust and scalable.
-  * **Proactive Engagement:** Implement logic for the Co-Pilot to initiate a conversation based on user behavior (e.g., "I see you've been looking at sunglasses for a while, can I help you find the perfect pair?").
-  * **Model Tuning:** Experiment with more powerful Gemini models (like `gemini-2.0-flash`) and fine-tuning for a more specialized brand personality.
-
------
-
-Created by **rufiix** for the GKE Turns 10 Hackathon.
-
-
-
+* **Orchestration:** GKE Autopilot
+* **AI Engine:** Vertex AI (Gemini 2.0 Flash Lite)
+* **Backend:** Python 3.12, FastAPI, Pydantic 2.x
+* **Authentication:** GKE Workload Identity
+* **CI:** GitHub Actions (ruff + pytest)
+* **Containerization:** Docker (multi-stage, non-root)
+* **Frontend:** Vanilla JavaScript, jQuery, HTML5, CSS3
